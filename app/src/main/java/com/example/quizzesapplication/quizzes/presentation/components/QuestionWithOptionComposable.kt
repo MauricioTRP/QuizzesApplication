@@ -131,14 +131,30 @@ private fun QuestionWithOption(
 
 @Preview(showBackground = true)
 @Composable
-private fun QuizOptionsPreview() {
+private fun QuizOptionsPreview1() {
     val question = getQuestion()
-    val selectedOption = Option(optionText = "2", optionId = "I am going to sleep.")
+    val selectedOption = Option(optionId = "2", optionText = "I am going to sleep.")
 
     QuizzesApplicationTheme {
         QuestionWithOption(
             quizQuestion = question,
             selectedOption = selectedOption,
+            onSelectAnswer = {},
+            onSubmitAnswer = {},
+            modifier = Modifier
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun QuizOptionsPreview2() {
+    val question = getQuestion()
+
+    QuizzesApplicationTheme {
+        QuestionWithOption(
+            quizQuestion = question,
+            selectedOption = null,
             onSelectAnswer = {},
             onSubmitAnswer = {},
             modifier = Modifier
