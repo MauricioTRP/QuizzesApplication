@@ -1,5 +1,6 @@
 package com.example.quizzesapplication.quizzes.presentation.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,9 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,18 +30,21 @@ import com.example.quizzesapplication.quizzes.domain.Option
 import com.example.quizzesapplication.quizzes.domain.Quiz
 import com.example.quizzesapplication.quizzes.presentation.QuizzesViewModel
 import com.example.quizzesapplication.ui.theme.QuizzesApplicationTheme
+import kotlinx.coroutines.launch
 
 
-typealias QuizLinkId = String
+typealias QuizLinkId = Int
 @Composable
 fun QuestionWithOptionComposable(
     onSubmitAnswer: (QuizLinkId) -> Unit, // Used for navigation
-    quizId: String,
+    quizId: Int,
     viewModel: QuizzesViewModel,
     modifier: Modifier = Modifier,
 ) {
     val questionUiState by viewModel.quizUIState.collectAsState()
     var selectedOption by remember { mutableStateOf<Option?>(null) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(questionUiState) {
         if (questionUiState.currentQuiz == null) {
@@ -56,7 +62,14 @@ fun QuestionWithOptionComposable(
             selectedOption = selectedOption,
             onSelectAnswer = { selectedOption = it },
             onSubmitAnswer = { option ->
-                viewModel.submitQuiz(quizId = quizId, answer = listOf(option.optionId.toInt()))
+                scope.launch {
+                    val res = viewModel.submitQuiz(quizId = quizId, answer = listOf(option.optionId.toInt()))
+                    val feedback = when (res) {
+                        true -> "Correct!"
+                        false -> "Wrong!"
+                    }
+                    Toast.makeText(context, feedback, Toast.LENGTH_SHORT).show()
+                }
 
                 // Need a way to get next QuizId
                 onSubmitAnswer(quizId)
@@ -164,7 +177,7 @@ private fun QuizOptionsPreview2() {
 //
 private fun getQuestion() : Quiz {
     return Quiz(
-        id = "1",
+        id = 1,
         text = "How are you?",
         title = "The title of the question?",
         options = listOf(

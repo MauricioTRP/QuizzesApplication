@@ -66,7 +66,7 @@ private fun NavGraphBuilder.quizzesGraph(
             QuizLandingScreen(
                 onStartQuiz = {
                     navController
-                        .navigate(QuizzesScreens.QuizDetailScreen.createRoute(it))
+                        .navigate(QuizzesScreens.QuizDetailScreen.createRoute(it.toIntOrNull() ?: 0))
                 },
                 showSnackbar = showSnackbar,
                 quizzesViewModel = quizzesViewModel,
@@ -79,7 +79,7 @@ private fun NavGraphBuilder.quizzesGraph(
             route = QuizzesScreens.QuizDetailScreen.route,
             arguments = listOf(navArgument("quizId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+            val quizId = backStackEntry.arguments?.getString("quizId")?.toIntOrNull() ?: 0
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(QuizzesScreens.Root.route)
             }
@@ -93,7 +93,7 @@ private fun NavGraphBuilder.quizzesGraph(
                     val route = if (nextQuizId == "end") {
                         QuizzesScreens.QuizMainScreen.route
                     } else {
-                        QuizzesScreens.QuizDetailScreen.createRoute(nextQuizId)
+                        QuizzesScreens.QuizDetailScreen.createRoute(nextQuizId.toIntOrNull() ?: 0)
                     }
                     navController.navigate(route = route) {
                         popUpTo(QuizzesScreens.QuizDetailScreen.createRoute(solvedQuizId)) {

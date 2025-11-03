@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0c5d5d54d2aa2e952b9b8ec88376ec37",
+    "identityHash": "3c0e5824a98c6755d3545ff564277517",
     "entities": [
       {
         "tableName": "answers",
@@ -36,13 +36,12 @@
       },
       {
         "tableName": "completions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `quiz_item_id` INTEGER NOT NULL, `completed_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `quiz_item_id` INTEGER NOT NULL, `completed_at` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "quizItemId",
@@ -58,7 +57,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
             "id"
           ]
@@ -96,7 +95,7 @@
       },
       {
         "tableName": "quiz_options",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`option_text` TEXT NOT NULL, `quiz_id` INTEGER NOT NULL, `option_ix` INTEGER NOT NULL, PRIMARY KEY(`option_ix`, `quiz_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`option_text` TEXT NOT NULL, `quiz_id` INTEGER NOT NULL, `option_ix` INTEGER NOT NULL, PRIMARY KEY(`option_ix`, `quiz_id`), FOREIGN KEY(`quiz_id`) REFERENCES `quiz_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "optionText",
@@ -123,12 +122,25 @@
             "option_ix",
             "quiz_id"
           ]
-        }
+        },
+        "foreignKeys": [
+          {
+            "table": "quiz_items",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "quiz_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0c5d5d54d2aa2e952b9b8ec88376ec37')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3c0e5824a98c6755d3545ff564277517')"
     ]
   }
 }

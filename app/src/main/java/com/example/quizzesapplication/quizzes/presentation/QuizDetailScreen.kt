@@ -15,7 +15,7 @@ import com.example.quizzesapplication.quizzes.domain.Quiz
 
 @Composable
 fun QuizDetailScreen(
-    quizId: String,
+    quizId: Int,
     quizzesViewModel: QuizzesViewModel
 ) {
     LaunchedEffect(key1 = quizId) {
