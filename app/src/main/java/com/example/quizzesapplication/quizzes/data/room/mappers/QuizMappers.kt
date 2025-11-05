@@ -15,7 +15,7 @@ fun QuizWithOptions.toDomain() : Quiz {
     val optionsEntity = this.options
 
     return Quiz(
-        id = quizEntity.id.toString(),
+        id = quizEntity.id,
         text = quizEntity.text,
         title = quizEntity.title,
         options = optionsEntity.map { it.toDomain() }

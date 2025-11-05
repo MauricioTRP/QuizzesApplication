@@ -12,8 +12,8 @@ import java.util.Date
  */
 @Entity(tableName = "completions")
 data class CompletionsEntity(
-    @PrimaryKey
-    val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int? = null,
     @ColumnInfo(name = "quiz_item_id")
     val quizItemId: Int,
     @ColumnInfo(name = "completed_at")

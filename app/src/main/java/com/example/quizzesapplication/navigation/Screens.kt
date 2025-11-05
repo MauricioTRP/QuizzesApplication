@@ -60,7 +60,7 @@ sealed interface QuizzesScreens{
         override val route: String
             get() = "$ROUTE_PREFIX/{quizId}"
 
-        fun createRoute(quizId: String) = "$ROUTE_PREFIX/$quizId"
+        fun createRoute(quizId: Int) = "$ROUTE_PREFIX/$quizId"
     }
 }
 

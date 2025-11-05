@@ -15,6 +15,7 @@ interface QuizRepository {
     suspend fun getQuizItems(): Flow<List<Quiz>>
     suspend fun getQuizItemById(id: String): Quiz
     suspend fun getCompletedQuizzes(): List<QuizCompleted>
-    suspend fun submitAnswer(quizId: String,answer: List<Int>)
+    suspend fun checkAnswer(quizId: Int, answer: List<Int>): Boolean
+    suspend fun submitCompletion(quizId: Int)
     suspend fun sync() : Boolean
 }

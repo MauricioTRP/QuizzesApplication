@@ -46,14 +46,16 @@ class QuizRepositoryImpl @Inject constructor(
         return quizzesLocalDataSource.getCompletedQuizzes()
     }
 
-    override suspend fun submitAnswer(
-        quizId: String,
-        answer: List<Int>
-    ) {
-        val answers = answer.map { (quizId to it).toAnswerEntity() }
-        quizzesLocalDataSource.insertAnswers(answers)
+    override suspend fun checkAnswer(quizId: Int, answer: List<Int>): Boolean {
+        return quizzesLocalDataSource.getCorrectOptionsIxsByQuizId(quizId).sorted() == answer.sorted()
+    }
 
-        // queueSubmissionSync(quizId, answer)
+    override suspend fun submitCompletion(quizId: Int) {
+        quizzesLocalDataSource.insertCompletion(quizId = quizId)
+//        val answers = answer.map { (quizId to it).toAnswerEntity() }
+//        quizzesLocalDataSource.insertAnswers(answers)
+//        queueSubmissionSync(quizId, answer)
+
     }
 
     override suspend fun sync(): Boolean {

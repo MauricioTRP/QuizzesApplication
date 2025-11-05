@@ -30,7 +30,7 @@ abstract class QuizDependencies {
         fun providesDatabase(@ApplicationContext applicationContext: Context) : AppDatabase = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "English.db")
-            // .createFromAsset("quizz.db")
+            .createFromAsset("database/English_db.db")
             .build()
 
         @Singleton
@@ -40,6 +40,10 @@ abstract class QuizDependencies {
         @Singleton
         @Provides
         fun providesAnswerDao(appDatabase: AppDatabase) = appDatabase.answerDao()
+
+        @Singleton
+        @Provides
+        fun providesCompletionDao(appDatabase: AppDatabase) = appDatabase.completionDao()
     }
 
 }

@@ -33,7 +33,7 @@ fun QuizLandingScreen(
         Button(
             onClick = {
                 quizUiState.quizzes.firstOrNull()?.let {
-                    onStartQuiz(it.id)
+                    onStartQuiz(it.id.toString())
                 }
             },
             enabled = quizUiState.quizzes.isNotEmpty(),

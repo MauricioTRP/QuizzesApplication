@@ -42,7 +42,4 @@ interface QuizItemDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOptions(options: List<QuizOptionsEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCompletions(completedQuizItems: List<CompletionsEntity>)
 }

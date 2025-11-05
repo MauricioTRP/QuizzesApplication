@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.quizzesapplication.quizzes.domain.QuizRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -46,7 +49,7 @@ class QuizzesViewModel @Inject constructor(
         }
     }
 
-    fun getQuizById(quizId: String) {
+    fun getQuizById(quizId: Int) {
         viewModelScope.launch {
             _quizUIState.value = _quizUIState.value.copy(
                 currentQuiz = quizUIState.value.quizzes.find { it.id == quizId },
@@ -55,23 +58,24 @@ class QuizzesViewModel @Inject constructor(
         }
     }
 
-    fun submitQuiz(quizId: String, answer: List<Int>) {
-        viewModelScope.launch {
-            _quizUIState.value = _quizUIState.value.copy(
-                isLoading = true
-            )
-            quizRepository.submitAnswer(quizId, answer)
-            _quizUIState.value = _quizUIState.value.copy(isLoading = false)
-        }
-    }
+    suspend fun submitQuiz(quizId: Int, answer: List<Int>): Boolean =
+        withContext(Dispatchers.IO) {
+            _quizUIState.update { it.copy(isLoading = true) }
 
-    fun updateCurrentQuiz(solvedQuizId: String) : String {
+            val isCorrect = quizRepository.checkAnswer(quizId, answer)
+            if (isCorrect) quizRepository.submitCompletion(quizId)
+
+            _quizUIState.update { it.copy(isLoading = false) }
+            isCorrect
+        }
+
+    fun updateCurrentQuiz(solvedQuizId: Int) : String {
         val updatedQuizzes = _quizUIState.value.quizzes.filter { it.id != solvedQuizId }
         _quizUIState.value = _quizUIState.value.copy(
             quizzes = updatedQuizzes,
             currentQuiz = updatedQuizzes.firstOrNull()
         )
 
-        return _quizUIState.value.currentQuiz?.id ?: "end"
+        return _quizUIState.value.currentQuiz?.id?.toString() ?: "end"
     }
 }
