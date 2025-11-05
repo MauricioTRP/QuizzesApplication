@@ -69,10 +69,9 @@ fun QuestionWithOptionComposable(
                         false -> "Wrong!"
                     }
                     Toast.makeText(context, feedback, Toast.LENGTH_SHORT).show()
+                    // Need a way to get next QuizId
+                    onSubmitAnswer(quizId)
                 }
-
-                // Need a way to get next QuizId
-                onSubmitAnswer(quizId)
             },
             modifier = modifier
         )

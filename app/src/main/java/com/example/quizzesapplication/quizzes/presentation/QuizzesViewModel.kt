@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.quizzesapplication.quizzes.domain.QuizRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -56,20 +58,16 @@ class QuizzesViewModel @Inject constructor(
         }
     }
 
-    suspend fun submitQuiz(quizId: Int, answer: List<Int>): Boolean {
-        val res = viewModelScope.async {
-            _quizUIState.value = _quizUIState.value.copy(
-                isLoading = true
-            )
+    suspend fun submitQuiz(quizId: Int, answer: List<Int>): Boolean =
+        withContext(Dispatchers.IO) {
+            _quizUIState.update { it.copy(isLoading = true) }
+
             val isCorrect = quizRepository.checkAnswer(quizId, answer)
-            if (isCorrect) {
-                quizRepository.submitCompletion(quizId)
-            }
-            _quizUIState.value = _quizUIState.value.copy(isLoading = false)
+            if (isCorrect) quizRepository.submitCompletion(quizId)
+
+            _quizUIState.update { it.copy(isLoading = false) }
             isCorrect
         }
-        return res.await()
-    }
 
     fun updateCurrentQuiz(solvedQuizId: Int) : String {
         val updatedQuizzes = _quizUIState.value.quizzes.filter { it.id != solvedQuizId }
