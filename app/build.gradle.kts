@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+    alias(libs.plugins.serialization)
+    alias(libs.plugins.protobuf)
 }
 
 room {
@@ -49,12 +51,36 @@ android {
     }
 }
 
+protobuf {
+    protoc {
+        artifact = libs.protobuf.protoc.get().toString()
+    }
+
+    generateProtoTasks {
+        all().configureEach {
+            builtins {
+                try {
+                    create("java") {
+                        option("lite")
+                    }
+                } catch (_: Exception) {
+                    getByName("java") {
+                        option("lite")
+                    }
+                }
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(libs.hilt)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.bundles.room.db)
+    implementation(libs.bundles.network)
+    implementation(libs.bundles.protobufDatastore)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

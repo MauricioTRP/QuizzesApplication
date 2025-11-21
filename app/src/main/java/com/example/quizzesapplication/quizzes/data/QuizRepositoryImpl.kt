@@ -2,6 +2,8 @@ package com.example.quizzesapplication.quizzes.data
 
 import android.content.Context
 import android.util.Log
+import com.example.quizzesapplication.quizzes.data.remote.mappers.toDomain
+import com.example.quizzesapplication.quizzes.data.remote.service.QuizzesService
 import com.example.quizzesapplication.quizzes.data.room.QuizzesLocalDataSource
 import com.example.quizzesapplication.quizzes.data.room.mappers.toAnswerEntity
 import com.example.quizzesapplication.quizzes.domain.Quiz
@@ -24,7 +26,7 @@ import javax.inject.Inject
 class QuizRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val quizzesLocalDataSource: QuizzesLocalDataSource,
-    // private val quizzesRemoteDataSource: QuizzesService
+    private val quizzesRemoteDataSource: QuizzesService
 ) : QuizRepository {
 
     /**
@@ -59,9 +61,19 @@ class QuizRepositoryImpl @Inject constructor(
     }
 
     override suspend fun sync(): Boolean {
-        // TODO("Not yet implemented")
-        return true
+        return try {
+            val remoteQuizzesService = quizzesRemoteDataSource.getQuizzes().content.map { it.toDomain() }
+            quizzesLocalDataSource.insertQuizzes(remoteQuizzesService)
+            Log.d(TAG, "sync success")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "sync exception", e)
+            false
+        }
     }
 
     // Need to implement in later phases Remote Sync
+    companion object {
+        const val TAG = "QuizRepository"
+    }
 }
