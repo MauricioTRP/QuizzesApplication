@@ -2,11 +2,15 @@ package com.example.quizzesapplication.quizzes.data
 
 import android.content.Context
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import com.example.quizzesapplication.quizzes.data.remote.mappers.toDomain
 import com.example.quizzesapplication.quizzes.data.remote.service.QuizzesService
 import com.example.quizzesapplication.quizzes.data.room.QuizzesLocalDataSource
@@ -17,6 +21,8 @@ import com.example.quizzesapplication.quizzes.domain.QuizCompleted
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 
@@ -33,6 +39,9 @@ class QuizRepositoryImpl @Inject constructor(
     private val quizzesLocalDataSource: QuizzesLocalDataSource,
     private val quizzesRemoteDataSource: QuizzesService
 ) : QuizRepository {
+
+    // Mutex to prevent concurrent sync operations
+    private val syncMutex = Mutex()
 
     /**
      * Retrieves a list of questions using an offline-first approach
@@ -66,14 +75,17 @@ class QuizRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun sync(): Boolean {
-        Log.d("QuizRepositoryImpl", "sync called")
+    override suspend fun sync(): Boolean = syncMutex.withLock {
+        Log.d(TAG, "sync called")
         return try {
             val remoteQuizzes = quizzesRemoteDataSource.getQuizzes().content.map { it.toDomain() }
-            quizzesLocalDataSource.deleteAll()
-            quizzesLocalDataSource.insertQuizzes(remoteQuizzes)
+            // Use replaceAllQuizzes which uses a transaction to prevent data loss
+            // Transaction ensures atomicity: if insert fails, delete is rolled back
+            quizzesLocalDataSource.replaceAllQuizzes(remoteQuizzes)
+            Log.d(TAG, "Sync completed successfully - ${remoteQuizzes.size} quizzes synced")
             true
         } catch (e: Exception) {
+            Log.e(TAG, "Sync failed", e)
             false
         }
     }
@@ -91,12 +103,27 @@ class QuizRepositoryImpl @Inject constructor(
         val submissionWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
             .setConstraints(constraints)
             .setInputData(inputData)
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.EXPONENTIAL,
+                backoffDelay = 10,
+                timeUnit = TimeUnit.SECONDS
+            )
+            .addTag("quiz_sync")
+            .addTag("quiz_$quizId")
             .build()
 
-        WorkManager.getInstance(context).enqueue(submissionWorkRequest)
+        // Use unique work to prevent duplicate submissions for the same quiz
+        val uniqueWorkName = "sync_quiz_$quizId"
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(
+                uniqueWorkName,
+                ExistingWorkPolicy.REPLACE,
+                submissionWorkRequest
+            )
+        
+        Log.d(TAG, "Enqueued sync work for quiz $quizId")
     }
 
-    // Need to implement in later phases Remote Sync
     companion object {
         const val TAG = "QuizRepository"
     }

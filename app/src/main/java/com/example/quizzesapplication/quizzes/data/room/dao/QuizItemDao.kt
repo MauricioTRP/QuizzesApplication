@@ -42,4 +42,12 @@ interface QuizItemDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOptions(options: List<QuizOptionsEntity>)
+
+    @Transaction
+    suspend fun replaceAllQuizzes(quizzesWithOption: List<QuizWithOptions>) {
+        // Use transaction to ensure atomicity: if insert fails, delete is rolled back
+        // This prevents data loss - either both operations succeed or both fail
+        deleteAll()
+        insertAllQuizzes(quizzesWithOption)
+    }
 }

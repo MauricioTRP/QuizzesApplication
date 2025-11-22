@@ -51,6 +51,10 @@ class QuizzesLocalDataSource @Inject constructor (
         quizItemDao.insertAllQuizzes(quizzes.map { it.toQuizWithOptions() })
     }
 
+    suspend fun replaceAllQuizzes(quizzes: List<Quiz>) {
+        quizItemDao.replaceAllQuizzes(quizzes.map { it.toQuizWithOptions() })
+    }
+
     suspend fun deleteAll() {
         quizItemDao.deleteAll()
     }

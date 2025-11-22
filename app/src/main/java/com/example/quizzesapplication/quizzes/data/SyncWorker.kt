@@ -13,6 +13,8 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import retrofit2.HttpException
+import java.io.IOException
 
 /**
  *
@@ -32,24 +34,52 @@ class SyncWorker @AssistedInject constructor (
 
     override suspend fun doWork(): Result {
         val quizId = inputData.getString(KEY_QUIZ_ID)
-        val answer = inputData.getIntArray(KEY_RESULT) ?.toList()
+        val answer = inputData.getIntArray(KEY_RESULT)?.toList()
         val entryPoint = EntryPointAccessors.fromApplication(appContext, SyncWorkerEntryPoint::class.java)
         val quizzesService = entryPoint.quizzesService()
 
-        print("quizId: $quizId, answer: $answer")
+        Log.d("SyncWorker", "Starting sync - quizId: $quizId, answer: $answer")
 
         if (quizId == null || answer == null) {
+            Log.e("SyncWorker", "Missing required data - quizId: $quizId, answer: $answer")
+            return Result.failure()
+        }
+
+        val quizIdInt = quizId.toIntOrNull()
+        if (quizIdInt == null) {
+            Log.e("SyncWorker", "Invalid quizId format: $quizId")
             return Result.failure()
         }
 
         return try {
-            quizzesService.solveQuiz(quizId.toInt(), AnswerDto(answer))
-
+            quizzesService.solveQuiz(quizIdInt, AnswerDto(answer))
+            Log.d("SyncWorker", "Successfully synced quiz $quizIdInt")
             Result.success()
+        } catch (e: HttpException) {
+            when (e.code()) {
+                in 400..499 -> {
+                    // Client errors - don't retry (bad request, unauthorized, etc.)
+                    Log.e("SyncWorker", "Client error ${e.code()} for quiz $quizIdInt: ${e.message}", e)
+                    Result.failure()
+                }
+                in 500..599 -> {
+                    // Server errors - retry
+                    Log.e("SyncWorker", "Server error ${e.code()} for quiz $quizIdInt: ${e.message}", e)
+                    Result.retry()
+                }
+                else -> {
+                    Log.e("SyncWorker", "HTTP error ${e.code()} for quiz $quizIdInt: ${e.message}", e)
+                    Result.retry()
+                }
+            }
+        } catch (e: IOException) {
+            // Network errors - retry
+            Log.e("SyncWorker", "Network error for quiz $quizIdInt: ${e.message}", e)
+            Result.retry()
         } catch (e: Exception) {
-            Log.e("Sync Worker", "Error while enqueuing task")
-            e.printStackTrace()
-            Result.retry() // HTTPClient will handle backoff strategy
+            // Unexpected errors - don't retry
+            Log.e("SyncWorker", "Unexpected error for quiz $quizIdInt: ${e.message}", e)
+            Result.failure()
         }
     }
 }
