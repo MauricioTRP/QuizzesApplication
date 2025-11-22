@@ -16,6 +16,6 @@ interface QuizRepository {
     suspend fun getQuizItemById(id: String): Quiz
     suspend fun getCompletedQuizzes(): List<QuizCompleted>
     suspend fun checkAnswer(quizId: Int, answer: List<Int>): Boolean
-    suspend fun submitCompletion(quizId: Int)
+    suspend fun submitCompletion(quizId: Int, answer: List<Int>? = null)
     suspend fun sync() : Boolean
 }

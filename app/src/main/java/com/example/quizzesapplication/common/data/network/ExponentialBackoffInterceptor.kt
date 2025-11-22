@@ -33,6 +33,14 @@ class ExponentialBackoffInterceptor(
                 if (response.isSuccessful) {
                     return response
                 }
+
+                // Only retry on server errors (5xx) or specific client errors (429 Too Many Requests)
+                // Don't retry on 4xx client errors (400, 401, 403, 404, etc.)
+                val shouldRetry = response.code in 500..599 || response.code == 429
+                
+                if (!shouldRetry || tryCount >= maxRetries) {
+                    return response
+                }
             } catch (e: IOException) {
                 exception = e
 
@@ -41,12 +49,11 @@ class ExponentialBackoffInterceptor(
                 }
             }
 
-            if(tryCount < maxRetries) {
+            if (tryCount < maxRetries) {
                 val delayMillis = initialDelayMillis * 2.0.pow(tryCount.toDouble() - 1.0).toLong()
                 runBlocking {
                     delay(delayMillis)
                 }
-
             }
         }
 

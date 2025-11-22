@@ -1,3 +1,26 @@
 <resources>
-    <string name="app_name">QuizzesApplication</string>
+    <string name="app_name">Quizz Learning</string>
+    <string name="email_description">Email Icon</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show Password</string>
+    <string name="hi">Hi!</string>
+    <string name="welcome_message">Welcome to our Quizz Learning application!</string>
+    <string name="email_label">email</string>
+    <string name="password_label">password</string>
+    <string name="login">Login!</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="register">register</string>
+    <string name="must_be_valid_email">Must be a valid email</string>
+    <string name="please_login">please login.</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="has_min_length">Password must have min length of</string>
+    <string name="characters">characters</string>
+    <string name="password_must_have_a_number">Password must have a number</string>
+    <string name="password_must_have_a_lowercase">Password must have a lowercase</string>
+    <string name="password_must_have_an_uppercase">Password must have an Uppercase</string>
+    <string name="accept_tos">Accept Term of Service</string>
+    <string name="registration_error">There was an error on registration</string>
+    <string name="login_error">An error ocurred when login, please try again</string>
+    <string name="registration_successful">Registration Successful!</string>
+    <string name="login_successful">Successful Login</string>
 </resources>

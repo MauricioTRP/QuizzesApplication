@@ -82,6 +82,9 @@ dependencies {
     implementation(libs.bundles.network)
     implementation(libs.bundles.protobufDatastore)
 
+    implementation(libs.hilt.worker)
+    implementation(libs.androidx.worker)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

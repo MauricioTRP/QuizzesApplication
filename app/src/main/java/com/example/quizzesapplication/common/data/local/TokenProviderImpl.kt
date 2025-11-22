@@ -36,4 +36,13 @@ class TokenProviderImpl @Inject constructor (
                 .build()
         }
     }
+
+    override suspend fun clearToken() {
+        tokenStore.updateData { currentSettings ->
+            currentSettings.toBuilder()
+                .clearAccessToken()
+                .clearRefreshToken()
+                .build()
+        }
+    }
 }

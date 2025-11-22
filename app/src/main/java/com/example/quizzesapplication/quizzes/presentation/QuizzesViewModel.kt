@@ -63,7 +63,7 @@ class QuizzesViewModel @Inject constructor(
             _quizUIState.update { it.copy(isLoading = true) }
 
             val isCorrect = quizRepository.checkAnswer(quizId, answer)
-            if (isCorrect) quizRepository.submitCompletion(quizId)
+            if (isCorrect) quizRepository.submitCompletion(quizId, answer)
 
             _quizUIState.update { it.copy(isLoading = false) }
             isCorrect

@@ -2,6 +2,11 @@ package com.example.quizzesapplication.quizzes.data
 
 import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.quizzesapplication.quizzes.data.remote.mappers.toDomain
 import com.example.quizzesapplication.quizzes.data.remote.service.QuizzesService
 import com.example.quizzesapplication.quizzes.data.room.QuizzesLocalDataSource
@@ -52,24 +57,43 @@ class QuizRepositoryImpl @Inject constructor(
         return quizzesLocalDataSource.getCorrectOptionsIxsByQuizId(quizId).sorted() == answer.sorted()
     }
 
-    override suspend fun submitCompletion(quizId: Int) {
+    override suspend fun submitCompletion(quizId: Int, answer: List<Int>?) {
         quizzesLocalDataSource.insertCompletion(quizId = quizId)
-//        val answers = answer.map { (quizId to it).toAnswerEntity() }
-//        quizzesLocalDataSource.insertAnswers(answers)
-//        queueSubmissionSync(quizId, answer)
-
+        
+        // Queue sync worker to send answer to server if provided
+        answer?.let {
+            queueSubmissionSync(quizId.toString(), it)
+        }
     }
 
     override suspend fun sync(): Boolean {
+        Log.d("QuizRepositoryImpl", "sync called")
         return try {
-            val remoteQuizzesService = quizzesRemoteDataSource.getQuizzes().content.map { it.toDomain() }
-            quizzesLocalDataSource.insertQuizzes(remoteQuizzesService)
-            Log.d(TAG, "sync success")
+            val remoteQuizzes = quizzesRemoteDataSource.getQuizzes().content.map { it.toDomain() }
+            quizzesLocalDataSource.deleteAll()
+            quizzesLocalDataSource.insertQuizzes(remoteQuizzes)
             true
         } catch (e: Exception) {
-            Log.e(TAG, "sync exception", e)
             false
         }
+    }
+
+    private fun queueSubmissionSync(quizId: String, answer: List<Int>) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val inputData = Data.Builder()
+            .putString(SyncWorker.KEY_QUIZ_ID, quizId)
+            .putIntArray(SyncWorker.KEY_RESULT, answer.toIntArray())
+            .build()
+
+        val submissionWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .setInputData(inputData)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(submissionWorkRequest)
     }
 
     // Need to implement in later phases Remote Sync

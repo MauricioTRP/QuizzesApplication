@@ -121,8 +121,9 @@ class AuthRepositoryImpl @Inject constructor (
                     Result.success(Unit)
                 } ?: run {
                     Log.e(TAG, "Restore session successful but response body was null.")
-                    // Decide if local tokens should be cleared here or not.
-                    // For now, we'''ll assume they are kept, but this could lead to an invalid state.
+                    // Stored tokens are cleared to ensure consistent state
+                    tokenProvider.clearToken()
+
                     Result.failure(Exception("Restore session successful but response body was null."))
                 }
             } else {
@@ -132,15 +133,8 @@ class AuthRepositoryImpl @Inject constructor (
                 // If token is invalid (e.g., 401/403), clear local tokens
                 if (errorCode == 401 || errorCode == 403) {
                     Log.d(TAG, "Refresh token is invalid. Clearing local tokens.")
-                    // Assuming tokenProvider.clearToken() exists or setToken can handle nulls
-                    // tokenProvider.clearToken()
-                    // If clearToken() doesn'''t exist, and setToken cannot take nulls for AuthTokens,
-                    // this part needs adjustment. For now, we'''ll rely on setToken for new tokens only.
-                    // To actually clear, you might need:
-                    // tokenProvider.setToken(AuthTokens(accessToken = "", refreshToken = ""))
-                    // or ensure AuthTokens in ProtoDataStore can handle nullable fields.
-                    // For now, if your AuthTokens requires non-null, this will be an issue.
-                    // A better approach would be to have a specific clearToken method or ensure AuthTokens supports nullability.
+                    // Clear local tokens
+                    tokenProvider.clearToken()
                 }
                 Result.failure(Exception(errorMsg))
             }

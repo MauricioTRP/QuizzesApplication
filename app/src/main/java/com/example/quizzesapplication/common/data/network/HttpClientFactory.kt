@@ -16,8 +16,8 @@ import javax.inject.Inject
  * @param exponentialBackoffInterceptor is responsible of retrying failed requests
  */
 class HttpClientFactory @Inject constructor (
-//    private val authenticator: Authenticator,
-//    private val authorization: Interceptor,
+    private val authenticator: Authenticator,
+    private val authorization: Interceptor,
     private val exponentialBackoffInterceptor: ExponentialBackoffInterceptor
 ) {
     fun build() : OkHttpClient {
@@ -28,11 +28,10 @@ class HttpClientFactory @Inject constructor (
          * and check [Maven Repository](https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor)
          * for more information
          */
-        val logginInterceptor = HttpLoggingInterceptor()
+        val loggingInterceptor = HttpLoggingInterceptor()
 
         return OkHttpClient.Builder()
-            .addInterceptor(exponentialBackoffInterceptor)
-            .addNetworkInterceptor(logginInterceptor)
+            // Content-Type header interceptor - applied first to all requests
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
                 val request = originalRequest.newBuilder()
@@ -41,9 +40,15 @@ class HttpClientFactory @Inject constructor (
 
                 chain.proceed(request)
             }
-            //.addInterceptor(authorization)
-            //.authenticator(authenticator)
-            // Both authenticator and authorization will be added on a later step
+            // Authorization interceptor - adds Bearer token to requests
+            .addInterceptor(authorization)
+            // Authenticator - handles 401 responses and refreshes tokens
+            .authenticator(authenticator)
+            // Network logging interceptor - logs network-level details
+            .addNetworkInterceptor(loggingInterceptor)
+            // Exponential backoff interceptor - retries on network errors and 5xx server errors
+            // Placed last so it doesn't interfere with authentication flow
+            .addInterceptor(exponentialBackoffInterceptor)
             .build()
     }
 }

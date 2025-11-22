@@ -1,5 +1,9 @@
 package com.example.quizzesapplication.navigation
 
+import android.util.Log
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -12,6 +16,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.example.quizzesapplication.auth.presentation.login_screen.LoginScreen
+import com.example.quizzesapplication.auth.presentation.register_screen.RegisterScreen
 import com.example.quizzesapplication.quizzes.presentation.QuizLandingScreen
 import com.example.quizzesapplication.quizzes.presentation.QuizzesViewModel
 import com.example.quizzesapplication.quizzes.presentation.components.QuestionWithOptionComposable
@@ -35,6 +41,95 @@ fun NavigationComposable(
             showSnackbar = showSnackbar,
             modifier = modifier
         )
+        authGraph(
+            navController = navController,
+            showSnackbar = showSnackbar,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * `NavGraphBuilder.authGraph` works like a navController only to `auth` module
+ *
+ * @param navController - is passed the same navController that MainActivity uses
+ * @param showSnackbar - is passed the same showSnackbar that MainActivity uses
+ */
+private fun NavGraphBuilder.authGraph(
+    navController: NavController,
+    showSnackbar: (String) -> Unit,
+    modifier: Modifier
+) {
+    navigation(
+        startDestination = AuthScreens.Intro.route,
+        route = AuthScreens.Root.route
+    ) {
+        /**
+         * AuthScreen Intro Composable
+         */
+        composable(route = AuthScreens.Intro.route) {
+            Column(
+                modifier = modifier
+            ) {
+                Text("Intro Route of Auth Package/Module")
+                Button(
+                    onClick = {
+                        navController.navigate(AuthScreens.Login.route)
+                    }
+                ) {
+                    Text("Go to Login")
+                }
+            }
+        }
+
+        /**
+         * AuthScreen Login Composable
+         */
+        composable(route = AuthScreens.Login.route) {
+            LoginScreen(
+                viewModel = androidx.hilt.navigation.compose.hiltViewModel(),
+                onRegisterClick = { // Navigates to Register Composable
+                    navController.navigate(AuthScreens.Register.route) {
+                        popUpTo(AuthScreens.Login.route) {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                },
+                onLoggedIn = {
+                    Log.d("NavGraph", "Successfully logged in")
+                    navController.navigate(QuizzesScreens.QuizMainScreen.route)
+                },
+                showSnackbar = showSnackbar,
+                modifier = modifier,
+            )
+        }
+
+        /**
+         * Register Composable
+         */
+        composable(route = AuthScreens.Register.route) {
+
+            RegisterScreen(
+                viewModel = androidx.hilt.navigation.compose.hiltViewModel(),
+                onLoginClick = {
+                    navController.navigate(AuthScreens.Login.route) {
+                        popUpTo(AuthScreens.Register.route) {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                },
+                onLoggedIn = {
+                    navController.navigate(QuizzesScreens.QuizMainScreen.route)
+                },
+                showSnackbar = showSnackbar,
+                modifier = modifier
+            )
+        }
+
     }
 }
 

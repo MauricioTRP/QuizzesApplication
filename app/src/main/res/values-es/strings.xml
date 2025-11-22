@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quizz Learning</string>
+    <string name="email_description">Icono de email</string>
+    <string name="hide_password">Esconder contraseña</string>
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hi">Hola!</string>
+    <string name="welcome_message">Bienvenido a la app Quizz Learning</string>
+    <string name="email_label">correo electrónico</string>
+    <string name="password_label">contraseña</string>
+    <string name="login">Inicia sesión</string>
+    <string name="dont_have_account">No tienes una cuenta?</string>
+    <string name="register">registrate</string>
+    <string name="must_be_valid_email">Debe ser un correo válido</string>
+    <string name="please_login">Por favor, inicia sesión</string>
+    <string name="already_have_an_account">Ya tienes una cuenta?</string>
+    <string name="has_min_length">Contraseña debe tener una longitud mínima de</string>
+    <string name="characters">Caracteres</string>
+    <string name="password_must_have_a_number">La contraseña debe tener un número</string>
+    <string name="password_must_have_a_lowercase">La contraseña debe tener una minúscula</string>
+    <string name="password_must_have_an_uppercase">La contraseña debe tener una mayúscula</string>
+    <string name="accept_tos">Aceptar términos de servicio</string>
+    <string name="registration_error">Hubo un error en el registro</string>
+    <string name="login_error">Hubo un error al inicio de sesión, inténtalo más tarde</string>
+    <string name="registration_successful">Registro Exitoso!</string>
+    <string name="login_successful">Inicio de Sesión Exitoso!</string>
+</resources>

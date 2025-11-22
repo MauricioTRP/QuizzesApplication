@@ -20,4 +20,9 @@ interface TokenProvider {
      * @param authTokens the [AuthTokens] instance containing the tokens to be stored.
      */
     suspend fun setToken(authTokens: AuthTokens)
+
+    /**
+     * Clears the stored authentication token.
+     */
+    suspend fun clearToken()
 }
